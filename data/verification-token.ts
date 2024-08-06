@@ -12,11 +12,9 @@ export const getVerificationTokenByEmail = async (email: string) => {
 
 export const getVerificationTokenByToken = async (token: string) => {
   try {
-    console.log("Function reached try block");
     const verificationToken = db.verificationToken.findUnique({
       where: { token },
     });
-    console.log("Server received token: ", verificationToken);
     return verificationToken;
   } catch (error) {
     console.log(error);

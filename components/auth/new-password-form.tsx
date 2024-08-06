@@ -16,10 +16,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSucess } from "@/components/form-success";
-import { reset } from "@/actions/reset";
+import { newPassword } from "@/actions/new-password";
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 
 export const NewPasswordForm = () => {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
@@ -35,7 +39,7 @@ export const NewPasswordForm = () => {
     setError("");
     setSuccess("");
     startTransition(() => {
-      reset(values).then((data) => {
+      newPassword(values, token).then((data) => {
         setError(data?.error);
         // TODO when setting up 2FA
         setSuccess(data?.success);
@@ -57,7 +61,7 @@ export const NewPasswordForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>New password</FormLabel>
                   <FormControl>
                     <Input
                       {...field}

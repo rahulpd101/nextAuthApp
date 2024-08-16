@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 import { getUserById } from "./data/user";
 import { $Enums } from "@prisma/client";
+import { getTwoFactorConfirmationByUserId } from "./data/two-factor-confirmation";
 
 declare module "next-auth" {
   interface Session {
@@ -37,18 +38,31 @@ export const {
     // for token generation in `login.ts` file.
     async signIn({ user, account }) {
       if (account?.type !== "credentials") return true;
+
       if (!user.id) {
         return false;
       }
 
       const exisitingUser = await getUserById(user.id);
+
       if (!exisitingUser?.emailVerified) return false;
 
+      // Two-factor authentication check
+      if (exisitingUser.isTwoFactorEnabled) {
+        const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
+          exisitingUser.id
+        );
+        if (!twoFactorConfirmation) return false;
+
+        // Delete two-factor confirmation for next signIn
+        await db.twoFactorConfirmation.delete({
+          where: { id: twoFactorConfirmation.id },
+        });
+      }
       return true;
     },
 
     async session({ token, session }) {
-      console.log({ sessionToken: token });
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
